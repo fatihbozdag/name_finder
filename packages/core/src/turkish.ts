@@ -110,18 +110,16 @@ export function extractLetters(str: string): string[] {
 /**
  * Count syllables in Turkish word (heuristic)
  * Turkish is syllable-timed, vowels define syllables
+ * In Turkish, each vowel typically forms a separate syllable
  */
 export function countSyllables(word: string): number {
   const vowels = 'aeıioöuüAEIİOÖUÜ';
   let count = 0;
-  let prevWasVowel = false;
 
   for (const char of word) {
-    const isVowel = vowels.includes(char);
-    if (isVowel && !prevWasVowel) {
+    if (vowels.includes(char)) {
       count++;
     }
-    prevWasVowel = isVowel;
   }
 
   return Math.max(count, 1); // At least 1 syllable
