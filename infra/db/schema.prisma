@@ -1,0 +1,124 @@
+// Prisma schema for Turkish Name Finder
+// Uses PostgreSQL with ICU collation support for Turkish
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core names table - the heart of the system
+model Name {
+  id        BigInt   @id @default(autoincrement())
+  slug      String   @unique // "defne"
+  display   String   // "Defne"
+  gender    Gender   // K=Kız, E=Erkek, U=Uniseks
+  origin    String?  // 'Türkçe','Arapça','Farsça', etc.
+  meaning   String?  @db.Text
+
+  // Turkish-specific flags
+  isUnisex         Boolean  @default(false) @map("is_unisex")
+  isPureTurkish    Boolean? @map("is_pure_turkish")
+
+  // Classification tags
+  styleTags        String[] @default([]) @map("style_tags") // 'Doğa','Klasik','Dini',...
+  semanticTags     String[] @default([]) @map("semantic_tags") // 'Erdem','Işık','Bitki',...
+  morphTags        String[] @default([]) @map("morph_tags") // '-can','-han','-su',...
+
+  // Phonological properties
+  stressPattern    String?  @map("stress_pattern") // 'final','nonfinal','unknown'
+  syllables        Int?
+  startsWith       String?  @map("starts_with")
+  endsWith         String?  @map("ends_with")
+  letters          String[] @default([])
+
+  // Orthography and transliteration
+  diacritics       Boolean? // ş,ç,ğ,ö,ü,ı,İ present
+  asciiTwin        String?  @map("ascii_twin") // plain ASCII fallback
+
+  // Nickname and compound handling
+  nicknameCandidates String[] @default([]) @map("nickname_candidates")
+  compound           Boolean  @default(false)
+
+  // Risk and quality signals
+  registryRisk       Int      @default(0) @map("registry_risk") // 0..3
+  spellingConfusion  String[] @default([]) @map("spelling_confusion")
+  negativeAssocScore Float    @default(0) @map("negative_assoc_score") // 0..1
+
+  // Metadata
+  createdAt DateTime @default(now()) @map("created_at")
+  source    Json?    // Provenance tracking
+
+  // Relations
+  frequencies    NameFrequency[]
+  regionShares   RegionShare[]
+  variants       NameVariant[]
+
+  @@map("name")
+}
+
+// Yearly frequency data from TÜİK
+model NameFrequency {
+  id           BigInt  @id @default(autoincrement())
+  nameId       BigInt  @map("name_id")
+  year         Int
+  gender       Gender
+  provinceCode String? @map("province_code") // '34' for İstanbul, null for nationwide
+  count        Int?
+  rank         Int?
+  source       Json?   // Provenance
+
+  name Name @relation(fields: [nameId], references: [id], onDelete: Cascade)
+
+  @@index([nameId, year, gender])
+  @@map("name_frequency")
+}
+
+// Regional usage patterns
+model RegionShare {
+  id       BigInt @id @default(autoincrement())
+  nameId   BigInt @map("name_id")
+  region   String // 'Karadeniz','Ege','Marmara', etc.
+  share    Float  // 0..1
+  method   String // 'from_freq','heuristic'
+  source   Json?
+
+  name Name @relation(fields: [nameId], references: [id], onDelete: Cascade)
+
+  @@index([nameId, region])
+  @@map("region_share")
+}
+
+// Variants and compound names
+model NameVariant {
+  id      BigInt @id @default(autoincrement())
+  nameId  BigInt @map("name_id")
+  variant String
+  kind    String // 'compound','spelling','diminutive'
+
+  name Name @relation(fields: [nameId], references: [id], onDelete: Cascade)
+
+  @@index([nameId])
+  @@map("name_variant")
+}
+
+// Anonymous telemetry for improving recommendations
+model SearchEvent {
+  id             BigInt   @id @default(autoincrement())
+  prefs          Json     // Anonymized preferences
+  shortlistSize  Int?     @map("shortlist_size")
+  resultsCount   Int?     @map("results_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("search_event")
+}
+
+// Gender enum
+enum Gender {
+  K // Kız (Girl)
+  E // Erkek (Boy)
+  U // Uniseks (Unisex)
+}
