@@ -127,6 +127,25 @@ importers:
         specifier: ^5.5.0
         version: 5.9.3
 
+  tools/etl:
+    dependencies:
+      '@prisma/client':
+        specifier: ^5.19.0
+        version: 5.22.0(prisma@5.22.0)
+      '@turkish-name-finder/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@turkish-name-finder/data':
+        specifier: workspace:*
+        version: link:../../packages/data
+    devDependencies:
+      tsx:
+        specifier: ^4.17.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
 packages:
 
   '@alloc/quick-lru@5.2.0':

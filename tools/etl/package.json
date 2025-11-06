@@ -1,0 +1,21 @@
+{
+  "name": "@turkish-name-finder/etl",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tdk": "tsx src/tdk.ts",
+    "tuik": "tsx src/tuik.ts",
+    "seed": "tsx src/seed.ts",
+    "enrich": "tsx src/enrich.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.19.0",
+    "@turkish-name-finder/core": "workspace:*",
+    "@turkish-name-finder/data": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.0"
+  }
+}

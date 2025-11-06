@@ -4,7 +4,8 @@
 
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/lib/server/trpc/router';
-import { createTRPCContext } from '@/lib/server/trpc/context';
+// Use mock context when Prisma is not available
+import { createTRPCContext } from '@/lib/server/trpc/context-mock';
 
 const handler = (req: Request) =>
   fetchRequestHandler({
